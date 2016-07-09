@@ -1,52 +1,52 @@
-module FSM(reset, clk, i1, i2);
-	input reset, clk, i1, i2;
-	parameter a=0, b=500, c=1000, d=1500, e=2000, f=2300, g=2800, h=3000, i=3300, j=3500, k=4000, l=4500;
-	reg [1:0] state, nextState;
+module tb_and_test(reset, clk, i2, i1);
+	input reset, clk, i2, i1;
+	parameter s1 = 0, s2 = 500, s3 = 1000, s4 = 1500, s5 = 2000, s6 = 2300, s7 = 2800, s8 = 3000, s9 = 3300, s10 = 3500, s11 = 4000, s12 = 4500;
+	reg[1:0] state, nextState;
 
 	always @(posedge clk) begin
 		if(reset) begin
-			state <= a;
-			i1=0, i2=0;
+			state <= s1;
+			i2 = 0, i1 = 0;
 		end
 		else begin
 			state <= nextState;
 		end
 	end
 
-	always @(i1, i2) begin
+	always @(i2, i1) begin
 		case(state)
-		a : begin
-			if(i1 == 1) nextState <= b;
+		s1 : begin
+			if(i1 == 1) nextState <= s2;
 		end
-		b : begin
-			if(i2 == 1) nextState <= c;
+		s2 : begin
+			if(i2 == 1) nextState <= s3;
 		end
-		c : begin
-			if(i1 == 0) nextState <= d;
+		s3 : begin
+			if(i1 == 0) nextState <= s4;
 		end
-		d : begin
-			if(i2 == 0) nextState <= e;
+		s4 : begin
+			if(i2 == 0) nextState <= s5;
 		end
-		e : begin
-			if(i1 == 1) nextState <= f;
+		s5 : begin
+			if(i1 == 1) nextState <= s6;
 		end
-		f : begin
-			if(i2 == 1) nextState <= g;
+		s6 : begin
+			if(i2 == 1) nextState <= s7;
 		end
-		g : begin
-			if(i1 == 0) nextState <= h;
+		s7 : begin
+			if(i1 == 0) nextState <= s8;
 		end
-		h : begin
-			if(i2 == 0) nextState <= i;
+		s8 : begin
+			if(i2 == 0) nextState <= s9;
 		end
-		i : begin
-			if(i2 == 1) nextState <= j;
+		s9 : begin
+			if(i2 == 1) nextState <= s10;
 		end
-		j : begin
-			if(i1 == 1) nextState <= k;
+		s10 : begin
+			if(i1 == 1) nextState <= s11;
 		end
-		k : begin
-			if(i1 == 0) nextState <= l;
+		s11 : begin
+			if(i1 == 0) nextState <= s12;
 		end
 		endcase
 	end
