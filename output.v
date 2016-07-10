@@ -1,19 +1,19 @@
-module tb_and_test(reset, clk, i2, i1);
-	input reset, clk, i2, i1;
+module tb_and_test(reset, clk, i1, i2);
+	input reset, clk, i1, i2;
 	parameter s1 = 0, s2 = 500, s3 = 1000, s4 = 1500, s5 = 2000, s6 = 2300, s7 = 2800, s8 = 3000, s9 = 3300, s10 = 3500, s11 = 4000, s12 = 4500;
 	reg[1:0] state, nextState;
 
 	always @(posedge clk) begin
 		if(reset) begin
 			state <= s1;
-			i2 = 0, i1 = 0;
+			i1 = 0, i2 = 0;
 		end
 		else begin
 			state <= nextState;
 		end
 	end
 
-	always @(i2, i1) begin
+	always @(i1, i2) begin
 		case(state)
 		s1 : begin
 			if(i1 == 1) nextState <= s2;

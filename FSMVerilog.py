@@ -1,5 +1,5 @@
-# written by Charlotte
-# for read and parse vcd file format
+# written by Charlotte, Yunho Kim
+# make a state machine from .vcd file
 
 class FSM:
     s_moduleName = ""
@@ -33,10 +33,11 @@ class FSM:
         for i in range(1, len(self.li_states)):
             curState = self.li_states[i]
             string = '\t\t' + self.li_states[i-1].s_name + ' : begin\n'
-            string += '\t\t\t' + 'if(' + curState.li_transitions[0].s_variable + ' == ' + curState.li_transitions[0].s_value + ') '
+            string += '\t\t\t' + 'if(' + curState.li_transitions[1].s_variable + ' == ' + curState.li_transitions[1].s_value + ') '
             string += 'nextState <= ' + curState.s_name + ';\n'
             string +='\t\t' + 'end\n'
             output.write(string)
+            curState.printState()
 
         output.write('\t\t' + 'endcase\n\t' + 'end\n' + 'endmodule')
 
@@ -80,19 +81,29 @@ class State:
         self.i_value = t
         self.li_transitions = []
 
-    def setTransition(self, var, val):
-        self.li_transitions.append(Transition(var, val))
+    def setTransition(self, var, val, d):
+        self.li_transitions.append(Transition(var, val, d))
+
+    def printState(self):
+        print("STATE : " + self.s_name)
+        print("The occurred time is " + self.i_value + "ps")
+        for t in self.li_transitions:
+            print(t.printTransitionInfo())
 
 
 class Transition:
     s_variable = ""
     s_value = '0'
-    #s_dest = ""
+    s_dest = ""
 
-    def __init__(self, var, val):
+    def __init__(self, var, val, d):
         self.s_variable = var
         self.s_value = val
-        #self.s_dest = d
+        self.s_dest = d
+
+    def printTransitionInfo(self):
+        print("\t" + self.s_variable + " changes to " + self.s_value)
+        print("\t" + "Next State is " + self.s_dest)
 
 
 # set FSM class
@@ -110,7 +121,6 @@ def setFSM(lines, fsm):
 
             if words[0] == 'scope':
                 fsm.setModuleName(words[2])
-
             elif words[0] == 'var' and words[1] == 'reg':
                 print(words[4], "is assigned to", words[3])
                 fsm.setInputValue(words[3], words[4])
@@ -120,9 +130,8 @@ def setFSM(lines, fsm):
         if line[0] == '#' and line[1] == '0':
             stat = State("s1", '0')
             for v in fsm.dic_inputVal.values():
-                stat.setTransition(v, '0')
+                stat.setTransition(v, '0', "s1")
             fsm.setState(stat)
-
         elif line[0] == '#':
             time = line[1:-1]
             stat = State("s" + str(idx), time)
@@ -134,8 +143,8 @@ def setFSM(lines, fsm):
 
             value = line[0]
             var = fsm.getInputVal(line[1])
-            print(var + " changes to " + value + " in " + time + "ps")
-            stat.setTransition(var, value)
+            stat.setTransition('i1', '0', "s1")
+            stat.setTransition(var, value, "s" + str(idx))
             fsm.setState(stat)
     return fsm
 
@@ -149,12 +158,13 @@ if __name__ == "__main__":
     lines = rf.readlines()
     lines = lines[10:]
     fsm = setFSM(lines, fsm)
+    print("FSM created")
 
     fsm.printHeader(wf)
     fsm.printInitialize(wf)
     fsm.printTransition(wf)
 
-    print("done")
+
 
     rf.close()
     wf.close()
