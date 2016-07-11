@@ -60,7 +60,6 @@ module tb_and_test(reset, clk, i2, i1);
 			else nextState <= s1;
 		end
 		s12 : begin
-			nextState <= s1;
 		end
 		endcase
 	end
