@@ -30,16 +30,22 @@ class FSM:
     # print the state changes & transition part of verilog file
     def printTransition(self, output):
         output.write('\t' + 'always @(' + self.makeInputVarString() + ') begin\n\t\t' + 'case(state)\n')
-        for i in range(1, len(self.li_states)):
+        for i in range(0, len(self.li_states)):
             curState = self.li_states[i]
-            string = '\t\t' + self.li_states[i - 1].s_name + ' : begin\n'
-            string += '\t\t\tif(' + curState.li_transitions[0].s_variable
-            string += ' == ' + curState.li_transitions[0].s_value + ') '
-            string += 'nextState <= ' + curState.s_name + ';\n'
-            string += "\t\t\telse nextState <= s1;\n"
-            string +='\t\t' + 'end\n'
-            output.write(string)
+            if i == len(self.li_states) - 1:
+                string = '\t\t' + curState.s_name + ' : begin\n\t\t\tnextState <= s1;\n\t\tend\n'
+                output.write(string)
+
+            else:
+                string = '\t\t' + curState.s_name  + ' : begin\n'
+                string += '\t\t\tif(' + curState.li_transitions[0].s_variable
+                string += ' == ' + curState.li_transitions[0].s_value + ') '
+                string += 'nextState <= ' + self.li_states[i+1].s_name + ';\n'
+                string += "\t\t\telse nextState <= s1;\n"
+                string +='\t\t' + 'end\n'
+                output.write(string)
             curState.printState()
+
 
         output.write('\t\t' + 'endcase\n\t' + 'end\n' + 'endmodule')
 
@@ -90,7 +96,10 @@ class State:
         print("STATE : " + self.s_name + "\t\tOccurrence time : " + self.i_value + "ps")
         for t in self.li_transitions:
             t.printTransitionInfo()
-        print("\telse Next state is s1\n")
+        if len(self.li_transitions) == 0:
+            print("\tNext state is s1\n")
+        else:
+            print("\telse Next state is s1\n")
 
 
 class Transition:
@@ -131,11 +140,13 @@ def setFSM(lines, fsm):
                 """nothing"""
 
         # set first state(s1) information
+
         if line[0] == '#' and line[1] == '0':
             stat = State("s1", '0')
             #for v in fsm.dic_inputVal.values():
             #    stat.setTransition(v, '0', "s2")
-            fsm.setState(stat)
+            #fsm.setState(stat)
+
         elif line[0] == '#':
             # set the other states information
             beforeStat = stat
@@ -151,7 +162,7 @@ def setFSM(lines, fsm):
             var = fsm.getInputVal(line[1])
             beforeStat.setTransition(var, value, "s" + str(idx - 1))
             fsm.setState(beforeStat)
-    #fsm.setState(stat)
+    fsm.setState(stat)
     return fsm
 
 
