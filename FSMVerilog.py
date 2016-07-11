@@ -140,12 +140,8 @@ def setFSM(lines, fsm):
                 """nothing"""
 
         # set first state(s1) information
-
         if line[0] == '#' and line[1] == '0':
             stat = State("s1", '0')
-            #for v in fsm.dic_inputVal.values():
-            #    stat.setTransition(v, '0', "s2")
-            #fsm.setState(stat)
 
         elif line[0] == '#':
             # set the other states information
@@ -166,7 +162,6 @@ def setFSM(lines, fsm):
     return fsm
 
 
-
 if __name__ == "__main__":
     rf = open("test.vcd", "r")
     wf = open("output.v", "w")
@@ -180,8 +175,6 @@ if __name__ == "__main__":
     fsm.printHeader(wf)
     fsm.printInitialize(wf)
     fsm.printTransition(wf)
-
-
 
     rf.close()
     wf.close()
