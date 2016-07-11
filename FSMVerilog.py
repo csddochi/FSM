@@ -33,7 +33,7 @@ class FSM:
         for i in range(0, len(self.li_states)):
             curState = self.li_states[i]
             if i == len(self.li_states) - 1:
-                string = '\t\t' + curState.s_name + ' : begin\n\t\t\tnextState <= s1;\n\t\tend\n'
+                string = '\t\t' + curState.s_name + ' : begin\n\t\tend\n'
                 output.write(string)
 
             else:
@@ -97,7 +97,7 @@ class State:
         for t in self.li_transitions:
             t.printTransitionInfo()
         if len(self.li_transitions) == 0:
-            print("\tNext state is s1\n")
+            print("\tThis is the end state\n")
         else:
             print("\telse Next state is s1\n")
 
@@ -125,7 +125,6 @@ def setFSM(lines, fsm):
     while linesIdx != len(lines):
         line = lines[linesIdx]
         linesIdx += 1
-
         if line[0] == '$':
             line = line[1:]
             words = line.split()
@@ -142,15 +141,14 @@ def setFSM(lines, fsm):
         # set first state(s1) information
         if line[0] == '#' and line[1] == '0':
             stat = State("s1", '0')
-
+        # set the other states information
         elif line[0] == '#':
-            # set the other states information
             beforeStat = stat
             time = line[1:-1]
             stat = State("s" + str(idx), time)
             idx += 1
 
-            # go to the next line
+            # go to the next line and set the transitions information
             line = lines[linesIdx]
             linesIdx += 1
 
