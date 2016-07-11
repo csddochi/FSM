@@ -1,144 +1,173 @@
-# written by Charlotte
-# to make Verilog file from VCD format
-
-vcd_p = dict()  # parameters in VCD format
-pairs = {}
-dataParse = 0
-string = ""  # to write Verilog file
-
-rf = open("tt_mod.vcd", 'r')
-lines = rf.readlines()
-lines = lines[10:]
-
+# written by Charlotte, Yunho Kim
+# make a state machine from .vcd file
 
 class FSM:
-    reset = "reset"
-    clock = "clk"
-    variables = []
-    parameters = list()  # states' list
+    s_moduleName = ""
+    dic_inputVal = {}
+    li_states = []
 
-    def __init__(self, var):
-        self.variables = [v for v in var]
+    #print the header part of verilog file
+    def printHeader(self, output):
+        output.write("module " + self.s_moduleName + "(reset, clk, " + self.makeInputVarString() + ");\n")
+        output.write("\tinput reset, clk, " + self.makeInputVarString() + ";\n")
+        output.write("\tparameter " + self.makeStateString() + ";\n")
+        output.write("\treg[1:0] state, nextState;\n\n")
 
-    def addState(self, state):
-        self.parameters.append(state)
+    # print the initialize part of verilog file
+    def printInitialize(self, output):
+        string = '\t' + 'always @(posedge clk) begin\n'
+        string += '\t\t' + 'if(reset) begin\n'
+        string += '\t\t\t' + 'state <= ' + self.li_states[0].s_name + ';\n'
+        string += '\t\t\t'
+        for v in self.dic_inputVal.values():
+            string = string + v + ' = 0, '
+        string = string[:-2]
+        string += ';\n\t\t' + 'end\n\t\t' + 'else begin\n'
+        string += '\t\t\t' + 'state <= nextState;\n\t\t' + 'end\n\t'
+        string += 'end\n\n'
+        output.write(string)
 
+    # print the state changes & transition part of verilog file
+    def printTransition(self, output):
+        output.write('\t' + 'always @(' + self.makeInputVarString() + ') begin\n\t\t' + 'case(state)\n')
+        for i in range(1, len(self.li_states)):
+            curState = self.li_states[i]
+            string = '\t\t' + self.li_states[i-1].s_name + ' : begin\n'
+            string += '\t\t\t' + 'if(' + curState.li_transitions[1].s_variable + ' == ' + curState.li_transitions[1].s_value + ') '
+            string += 'nextState <= ' + curState.s_name + ';\n'
+            string +='\t\t' + 'end\n'
+            output.write(string)
+            curState.printState()
 
-class Transitions:  # I don't know this application.
-    inputNum = 0  # input
-    outputNm = 0  # output
-    typeName = ""  # SDA or SCL
+        output.write('\t\t' + 'endcase\n\t' + 'end\n' + 'endmodule')
 
-    def __init__(self, i, o, t):
-        self.inputNum = i
-        self.outputNm = o
-        self.typeName = t
+    # make the input value string (e.g. i1, i2, i3)
+    def makeInputVarString(self):
+        s = ""
+        for v in self.dic_inputVal.values():
+            s += (v + ", ")
+        s = s[:-2]
+        return s
+
+    # make the state string (e.g. s1 = 0, s2 = 10, s3 = 30)
+    def makeStateString(self):
+        s = ""
+        for state in self.li_states:
+            s += (state.s_name + " = " + state.i_value + ", ")
+        s = s[:-2]
+        return s
+
+    # getters and setters
+    def setModuleName(self, n):
+        self.s_moduleName = n
+
+    def setInputValue(self, k, v):
+        self.dic_inputVal[k] = v
+
+    def setState(self, s):
+        self.li_states.append(s)
+
+    def getInputVal(self, k):
+        return self.dic_inputVal[k]
 
 
 class State:
-    sttName = ""
-    varName = ""
-    vrValue = 0  # default is zero, [0, 1]
-    varTime = 0
+    s_name = ""
+    i_value = 0
+    li_transitions = []
 
-    def __init__(self, s, n, v, t):
-        self.sttName = s
-        self.varName = n
-        self.vrValue = v
-        self.varTime = t
+    def __init__(self, n, t):
+        self.s_name = n
+        self.i_value = t
+        self.li_transitions = []
 
-    def toString(self):
-        temp = "state name is %s, " % self.sttName
-        temp = temp + "name is %s, " % self.varName
-        temp = temp + "value is %d " % int(self.vrValue)
-        temp = temp + "and time is %d." % int(self.varTime)
-        return temp
+    def setTransition(self, var, val, d):
+        self.li_transitions.append(Transition(var, val, d))
+
+    def printState(self):
+        print("STATE : " + self.s_name)
+        print("The occurred time is " + self.i_value + "ps")
+        for t in self.li_transitions:
+            print(t.printTransitionInfo())
+
+
+class Transition:
+    s_variable = ""
+    s_value = '0'
+    s_dest = ""
+
+    def __init__(self, var, val, d):
+        self.s_variable = var
+        self.s_value = val
+        self.s_dest = d
+
+    def printTransitionInfo(self):
+        print("\t" + self.s_variable + " changes to " + self.s_value)
+        print("\t" + "Next State is " + self.s_dest + '\n')
+
+
+# set FSM class
+def setFSM(lines, fsm):
+    idx = 2
+    linesIdx = 0
+
+    while linesIdx != len(lines):
+        line = lines[linesIdx]
+        linesIdx += 1
+
+        if line[0] == '$':
+            line = line[1:]
+            words = line.split()
+
+            if words[0] == 'scope':
+                fsm.setModuleName(words[2])
+            elif words[0] == 'var' and words[1] == 'reg':
+                print(words[4], "is assigned to", words[3])
+                fsm.setInputValue(words[3], words[4])
+            else:
+                """nothing"""
+
+        if line[0] == '#' and line[1] == '0':
+            stat = State("s1", '0')
+            for v in fsm.dic_inputVal.values():
+                stat.setTransition(v, '0', "s1")
+            fsm.setState(stat)
+        elif line[0] == '#':
+            time = line[1:-1]
+            stat = State("s" + str(idx), time)
+            idx += 1
+
+            # go to the next line
+            line = lines[linesIdx]
+            linesIdx += 1
+
+            value = line[0]
+            var = fsm.getInputVal(line[1])
+            stat.setTransition('i1', '0', "s1")
+            stat.setTransition(var, value, "s" + str(idx))
+            fsm.setState(stat)
+    return fsm
+
 
 
 if __name__ == "__main__":
+    rf = open("test.vcd", "r")
+    wf = open("output.v", "w")
+    fsm = FSM()
 
-    for line in lines:
-        words = line.split()
-        if '$var' in words:
+    lines = rf.readlines()
+    lines = lines[10:]
+    fsm = setFSM(lines, fsm)
+    print("FSM created")
 
-            # ignore 'scope'
+    fsm.printHeader(wf)
+    fsm.printInitialize(wf)
+    fsm.printTransition(wf)
 
-            if words[1] == 'reg':
-                vcd_p[words[3]] = words[4]  # insert dictionary
 
-    fsm = FSM(vcd_p.values())  # create Finite State Machine
 
-    # first line in Verilog file
-    string = string + 'module FSM(' + fsm.reset + ', ' + fsm.clock + ', '
-    for v in fsm.variables:
-        string = string + v + ', '
-    string = string[:-2]  # delete last ', '
-    string = string + ');\n'
-
-    # second line in Verilog file
-    string = string + '\t' + 'input ' + fsm.reset + ', ' + fsm.clock + ', '
-    for v in fsm.variables:
-        string = string + v + ', '
-    string = string[:-2]  # delete last ', '
-    string = string + ';\n'
-
-    # add state in Finite State Machine
-    state = State('a', fsm.variables, 0, 0)  # initialize
-    fsm.addState(state)
-
-    i = 1
-    for line in lines:
-        if line[0] is '#':
-            time = line[1:-1]
-            if time is not '0':
-                dataParse = 1
-            continue
-        if dataParse == 1:
-            value = line[0]
-            var = vcd_p[line[1]]
-            state = State(chr(ord('a') + i), var, value, time)
-            i = i + 1
-            fsm.addState(state)
-            dataParse = 0
-
-    # third line in Verilog file
-    string = string + '\t' + 'parameter '
-    for p in fsm.parameters:
-        string = string + p.sttName + '=' + str(p.varTime) + ', '
-    string = string[:-2] + ';\n'
-
-    # forth line in Verilog file
-    string = string + '\t' + 'reg [1:0] state, nextState;\n\n'
-
-    # add initializing part
-    string = string + '\t' + 'always @(posedge ' + fsm.clock + ') begin' + '\n'
-    string = string + '\t\t' + 'if(' + fsm.reset + ') begin' + '\n'
-    string = string + '\t\t\t' + 'state <= ' + fsm.parameters[0].sttName + ';\n'
-    string = string + '\t\t\t'
-    for v in fsm.variables:
-        string = string + v + '=0, '
-    string = string[:-2]  # delete last ', '
-    string = string + ';\n\t\t' + 'end\n\t\t' + 'else begin\n'
-    string = string + '\t\t\t' + 'state <= nextState;\n\t\t' + 'end\n\t'
-    string = string + 'end\n\n'
-
-    # loop according to state
-    string = string + '\t' + 'always @('
-    for v in fsm.variables:
-        string = string + v + ', '
-    string = string[:-2]  # delete last ', '
-    string = string + ') begin\n\t\t' + 'case(state)\n'
-    for i in range(1, len(fsm.parameters)):
-        string = string + '\t\t' + fsm.parameters[i - 1].sttName + ' : begin\n'
-        string = string + '\t\t\t' + 'if(' + fsm.parameters[i].varName
-        string = string + ' == ' + str(fsm.parameters[i].vrValue) + ') '
-        string = string + 'nextState <= ' + fsm.parameters[i].sttName + ';\n'
-        string = string + '\t\t' + 'end\n'
-
-    string = string + '\t\t' + 'endcase\n\t' + 'end\n' + 'endmodule'
-
-with open("output.v", 'w') as wf:
-    wf.write(string)
+    rf.close()
+    wf.close()
 
 
 
