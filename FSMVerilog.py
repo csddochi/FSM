@@ -103,7 +103,7 @@ class Transition:
 
     def printTransitionInfo(self):
         print("\t" + self.s_variable + " changes to " + self.s_value)
-        print("\t" + "Next State is " + self.s_dest)
+        print("\t" + "Next State is " + self.s_dest + '\n')
 
 
 # set FSM class
