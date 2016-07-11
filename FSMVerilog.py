@@ -32,8 +32,9 @@ class FSM:
         output.write('\t' + 'always @(' + self.makeInputVarString() + ') begin\n\t\t' + 'case(state)\n')
         for i in range(1, len(self.li_states)):
             curState = self.li_states[i]
-            string = '\t\t' + self.li_states[i-1].s_name + ' : begin\n'
-            string += '\t\t\tif(' + curState.li_transitions[1].s_variable + ' == ' + curState.li_transitions[1].s_value + ') '
+            string = '\t\t' + self.li_states[i - 1].s_name + ' : begin\n'
+            string += '\t\t\tif(' + curState.li_transitions[0].s_variable
+            string += ' == ' + curState.li_transitions[0].s_value + ') '
             string += 'nextState <= ' + curState.s_name + ';\n'
             string += "\t\t\telse nextState <= s1;\n"
             string +='\t\t' + 'end\n'
@@ -86,11 +87,10 @@ class State:
         self.li_transitions.append(Transition(var, val, d))
 
     def printState(self):
-        print("STATE : " + self.s_name)
-        print("The occurred time is " + self.i_value + "ps")
-        for t in self.li_transitions[1:]:
+        print("STATE : " + self.s_name + "\t\tOccurrence time : " + self.i_value + "ps")
+        for t in self.li_transitions:
             t.printTransitionInfo()
-        print("\telse Next state is s1")
+        print("\telse Next state is s1\n")
 
 
 class Transition:
@@ -111,6 +111,7 @@ class Transition:
 def setFSM(lines, fsm):
     idx = 2
     linesIdx = 0
+    stat = 0
 
     while linesIdx != len(lines):
         line = lines[linesIdx]
@@ -132,11 +133,12 @@ def setFSM(lines, fsm):
         # set first state(s1) information
         if line[0] == '#' and line[1] == '0':
             stat = State("s1", '0')
-            for v in fsm.dic_inputVal.values():
-                stat.setTransition(v, '0', "s1")
+            #for v in fsm.dic_inputVal.values():
+            #    stat.setTransition(v, '0', "s2")
             fsm.setState(stat)
-        # set the other states information
         elif line[0] == '#':
+            # set the other states information
+            beforeStat = stat
             time = line[1:-1]
             stat = State("s" + str(idx), time)
             idx += 1
@@ -147,9 +149,9 @@ def setFSM(lines, fsm):
 
             value = line[0]
             var = fsm.getInputVal(line[1])
-            stat.setTransition('i1', '0', "s1")
-            stat.setTransition(var, value, "s" + str(idx))
-            fsm.setState(stat)
+            beforeStat.setTransition(var, value, "s" + str(idx - 1))
+            fsm.setState(beforeStat)
+    #fsm.setState(stat)
     return fsm
 
 
@@ -162,7 +164,7 @@ if __name__ == "__main__":
     lines = rf.readlines()
     lines = lines[10:]
     fsm = setFSM(lines, fsm)
-    print("FSM created")
+    print("FSM created\n")
 
     fsm.printHeader(wf)
     fsm.printInitialize(wf)
