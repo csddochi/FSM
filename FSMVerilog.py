@@ -161,7 +161,7 @@ def setFSM(lines, fsm):
 
 
 if __name__ == "__main__":
-    rf = open("test.vcd", "r")
+    rf = open("test2.vcd", "r")
     wf = open("output.v", "w")
     fsm = FSM()
 
