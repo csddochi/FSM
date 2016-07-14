@@ -146,7 +146,7 @@ def setFSM(lines, fsm):
         # set first state(s1) information
         elif line[0] == '#':
             if isVarSetting == 1:
-                print(tempdic)
+
                 beforeStat.setTransition(tempdic, "s" + str(idx - 1))
                 fsm.setState(beforeStat)
                 isVarSetting = 0
