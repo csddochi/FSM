@@ -100,7 +100,7 @@ class State:
             print("\tThis is the end state\n")
         else:
             print("\telse if neither variables change")
-            print("\t--> Next State is " + self.s_name)
+            print("\t\t--> Next State is " + self.s_name)
             print("\telse Next state is s1\n")
 
 
@@ -119,7 +119,7 @@ class Transition:
         for k in self.dic_tranValue.keys():
             string += k + " changes to " + self.dic_tranValue[k] + " and "
         string = string[:-4]
-        print(string + "\n\t--> Next State is " + self.s_dest)
+        print(string + "\n\t\t--> Next State is " + self.s_dest)
 
 
 # set FSM class
