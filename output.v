@@ -1,73 +1,69 @@
-module tb_and_test(reset, clk, i4, i3, i1, i2);
-	input reset, clk, i4, i3, i1, i2;
-	parameter s1 = 0, s2 = 200, s3 = 700, s4 = 900, s5 = 1000, s6 = 1300, s7 = 1800, s8 = 2300, s9 = 2800, s10 = 3100, s11 = 3400, s12 = 3600, s13 = 3800, s14 = 4100;
+module tb_and_test(reset, clk, i1, i2, i4, i3);
+	input reset, clk, i1, i2, i4, i3;
+	parameter s1 = 0, s2 = 200, s3 = 700, s4 = 900, s5 = 1300, s6 = 1800, s7 = 2300, s8 = 2800, s9 = 3100, s10 = 3400, s11 = 3600, s12 = 3800, s13 = 4100;
 	reg[1:0] state, nextState;
 
 	always @(posedge clk) begin
 		if(reset) begin
 			state <= s1;
-			i4 = 0, i3 = 0, i1 = 0, i2 = 0;
+			i1 = 0, i2 = 0, i4 = 0, i3 = 0;
 		end
 		else begin
 			state <= nextState;
 		end
 	end
 
-	always @(i4, i3, i1, i2) begin
+	always @(i1, i2, i4, i3) begin
 		case(state)
 		s1 : begin
-			if(i3 == 1) nextState <= s2;
+			if( == 0) nextState <= s2;
 			else nextState <= s1;
 		end
 		s2 : begin
-			if(i1 == 1) nextState <= s3;
+			if( == 0) nextState <= s3;
 			else nextState <= s1;
 		end
 		s3 : begin
-			if(i3 == 0) nextState <= s4;
+			if( == 0) nextState <= s4;
 			else nextState <= s1;
 		end
 		s4 : begin
-			if(i4 == 1) nextState <= s5;
+			if( == 0) nextState <= s5;
 			else nextState <= s1;
 		end
 		s5 : begin
-			if(i1 == 0) nextState <= s6;
+			if( == 0) nextState <= s6;
 			else nextState <= s1;
 		end
 		s6 : begin
-			if(i2 == 1) nextState <= s7;
+			if( == 0) nextState <= s7;
 			else nextState <= s1;
 		end
 		s7 : begin
-			if(i1 == 1) nextState <= s8;
+			if( == 0) nextState <= s8;
 			else nextState <= s1;
 		end
 		s8 : begin
-			if(i4 == 0) nextState <= s9;
+			if( == 0) nextState <= s9;
 			else nextState <= s1;
 		end
 		s9 : begin
-			if(i3 == 1) nextState <= s10;
+			if( == 0) nextState <= s10;
 			else nextState <= s1;
 		end
 		s10 : begin
-			if(i4 == 1) nextState <= s11;
+			if( == 0) nextState <= s11;
 			else nextState <= s1;
 		end
 		s11 : begin
-			if(i2 == 0) nextState <= s12;
+			if( == 0) nextState <= s12;
 			else nextState <= s1;
 		end
 		s12 : begin
-			if(i1 == 0) nextState <= s13;
+			if( == 0) nextState <= s13;
 			else nextState <= s1;
 		end
 		s13 : begin
-			if(i3 == 0) nextState <= s14;
-			else nextState <= s1;
-		end
-		s14 : begin
 		end
 		endcase
 	end

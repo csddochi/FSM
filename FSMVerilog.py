@@ -89,8 +89,8 @@ class State:
         self.i_value = t
         self.li_transitions = []
 
-    def setTransition(self, var, val, d):
-        self.li_transitions.append(Transition(var, val, d))
+    def setTransition(self, valDic, d):
+        self.li_transitions.append(Transition(valDic, d))
 
     def printState(self):
         print("STATE : " + self.s_name + "\t\tOccurrence time : " + self.i_value + "ps")
@@ -99,32 +99,38 @@ class State:
         if len(self.li_transitions) == 0:
             print("\tThis is the end state\n")
         else:
+            print("\telse if neither variables change")
+            print("\t--> Next State is " + self.s_name)
             print("\telse Next state is s1\n")
 
 
 class Transition:
     s_variable = ""
     s_value = '0'
+    dic_tranValue = {}
     s_dest = ""
 
-    def __init__(self, var, val, d):
-        self.s_variable = var
-        self.s_value = val
+    def __init__(self, dic, d):
+        self.dic_tranValue = dic
         self.s_dest = d
 
     def printTransitionInfo(self):
-        print("\tif " + self.s_variable + " changes to " + self.s_value + " -- Next State is " + self.s_dest)
+        string = "\tif "
+        for k in self.dic_tranValue.keys():
+            string += k + " changes to " + self.dic_tranValue[k] + " and "
+        string = string[:-4]
+        print(string + "\n\t--> Next State is " + self.s_dest)
 
 
 # set FSM class
 def setFSM(lines, fsm):
-    idx = 2
-    linesIdx = 0
+    idx = 1
     stat = 0
+    beforeStat = 0
+    isVarSetting = 0
+    tempdic = {}
 
-    while linesIdx != len(lines):
-        line = lines[linesIdx]
-        linesIdx += 1
+    for line in lines:
         if line[0] == '$':
             line = line[1:]
             words = line.split()
@@ -137,25 +143,30 @@ def setFSM(lines, fsm):
                 fsm.setInputValue(words[3], words[4])
             else:
                 """nothing"""
-
         # set first state(s1) information
-        if line[0] == '#' and line[1] == '0':
-            stat = State("s1", '0')
-        # set the other states information
         elif line[0] == '#':
-            beforeStat = stat
+            if isVarSetting == 1:
+                print(tempdic)
+                beforeStat.setTransition(tempdic, "s" + str(idx - 1))
+                fsm.setState(beforeStat)
+                isVarSetting = 0
+            tempdic = {}
             time = line[1:-1]
+            beforeStat = stat
             stat = State("s" + str(idx), time)
+
             idx += 1
-
+            if time != "0":
+                isVarSetting = 1
+        elif isVarSetting == 1:
             # go to the next line and set the transitions information
-            line = lines[linesIdx]
-            linesIdx += 1
-
             value = line[0]
             var = fsm.getInputVal(line[1])
-            beforeStat.setTransition(var, value, "s" + str(idx - 1))
-            fsm.setState(beforeStat)
+            tempdic[var] = value
+    beforeStat.setTransition(tempdic, "s" + str(idx - 1))
+    fsm.setState(beforeStat)
+
+
     fsm.setState(stat)
     return fsm
 
