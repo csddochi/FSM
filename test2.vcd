@@ -1,0 +1,58 @@
+$date
+	Tue Jul 12 15:29:37 2016
+$end
+$version
+	ModelSim Version 10.4d
+$end
+$timescale
+	1ps
+$end
+
+$scope module tb_and_test $end
+$var parameter 32 ! test $end
+$var reg 1 " i1 $end
+$var reg 1 # i2 $end
+$var reg 1 $ i3 $end
+$var reg 1 % i4 $end
+$upscope $end
+$enddefinitions $end
+#0
+$dumpvars
+0"
+0#
+x$
+x%
+b1000 !
+$end
+#200
+1$
+#700
+1"
+1%
+#900
+0$
+#1300
+0"
+1$
+#1800
+1#
+0"
+0%
+#2300
+1"
+#2800
+1%
+#3100
+0$
+0%
+#3400
+1%
+0"
+#3600
+0#
+1$
+#3800
+1"
+0%
+#4100
+0$
