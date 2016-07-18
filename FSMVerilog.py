@@ -6,7 +6,7 @@ class FSM:
     dic_inputVal = {}
     li_states = []
 
-    #print the header part of verilog file
+    # print the header part of verilog file
     def printHeader(self, output):
         output.write("module " + self.s_moduleName + "(reset, clk, " + self.makeInputVarString() + ");\n")
         output.write("\tinput reset, clk, " + self.makeInputVarString() + ";\n")
@@ -37,15 +37,31 @@ class FSM:
                 output.write(string)
 
             else:
-                string = '\t\t' + curState.s_name  + ' : begin\n'
-                string += '\t\t\tif(' + curState.li_transitions[0].s_variable
-                string += ' == ' + curState.li_transitions[0].s_value + ') '
-                string += 'nextState <= ' + self.li_states[i+1].s_name + ';\n'
+                string = '\t\t' + curState.s_name + ' : begin\n'
+                string += '\t\t\tif('
+
+                for trans in curState.li_transitions:
+                    for key in trans.dic_tranValue.keys():
+                        string += key + ' == ' + trans.dic_tranValue[key] + ' && '
+                string = string[:-4]
+
+                string += ') nextState <= ' + self.li_states[i + 1].s_name + ';\n'
+
+                # else if phrase
+                if i is not 0:
+                    prior = self.li_states[i - 1]
+                    string += '\t\t\telse if('
+
+                    for trans in prior.li_transitions:
+                        for key in trans.dic_tranValue.keys():
+                            string += key + ' == ' + trans.dic_tranValue[key] + ' && '
+                    string = string[:-4]
+                    string += ') nextState <= ' + self.li_states[i].s_name + ';\n'
+
                 string += "\t\t\telse nextState <= s1;\n"
-                string +='\t\t' + 'end\n'
+                string += '\t\t' + 'end\n'
                 output.write(string)
             curState.printState()
-
 
         output.write('\t\t' + 'endcase\n\t' + 'end\n' + 'endmodule')
 
@@ -105,8 +121,8 @@ class State:
 
 
 class Transition:
-    s_variable = ""
-    s_value = '0'
+    # s_variable = ""
+    # s_value = '0'
     dic_tranValue = {}
     s_dest = ""
 
@@ -146,7 +162,6 @@ def setFSM(lines, fsm):
         # set first state(s1) information
         elif line[0] == '#':
             if isVarSetting == 1:
-
                 beforeStat.setTransition(tempdic, "s" + str(idx - 1))
                 fsm.setState(beforeStat)
                 isVarSetting = 0
@@ -165,7 +180,6 @@ def setFSM(lines, fsm):
             tempdic[var] = value
     beforeStat.setTransition(tempdic, "s" + str(idx - 1))
     fsm.setState(beforeStat)
-
 
     fsm.setState(stat)
     return fsm
@@ -186,9 +200,4 @@ if __name__ == "__main__":
     fsm.printTransition(wf)
 
     rf.close()
-    wf.close()
-
-
-
-
-
+wf.close()
