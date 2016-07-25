@@ -11,7 +11,7 @@ class FSM:
         output.write("module " + self.s_moduleName + "(reset, clk, " + self.makeInputVarString() + ");\n")
         output.write("\tinput reset, clk, " + self.makeInputVarString() + ";\n")
         output.write("\tparameter " + self.makeStateString() + ";\n")
-        output.write("\treg[1:0] state, nextState;\n\n")
+        output.write("\treg[16:0] state, nextState;\n\n") # change 1 bit into 16 bits
 
     # print the initialize part of verilog file
     def printInitialize(self, output):
@@ -42,13 +42,15 @@ class FSM:
                 string = '\t\t' + curState.s_name + ' : begin\n'
                 string += '\t\t\tif('
 
+                # if phrase
                 for trans in curState.li_transitions:
                     for key in trans.dic_tranValue.keys():
                         string += key + ' == ' + trans.dic_tranValue[key] + ' && '
                 string = string[:-4]
 
                 string += ') nextState <= ' + self.li_states[i + 1].s_name + ';\n'
-
+                
+                """ # for comments
                 # else if phrase
                 if i is not 0:
                     prior = self.li_states[i - 1]
@@ -59,7 +61,7 @@ class FSM:
                             string += key + ' == ' + trans.dic_tranValue[key] + ' && '
                     string = string[:-4]
                     string += ') nextState <= ' + self.li_states[i].s_name + ';\n'
-
+                """ 
                 string += "\t\t\telse nextState <= s1;\n"
                 string += '\t\t' + 'end\n'
                 output.write(string)
